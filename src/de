@@ -1,10 +1,16 @@
-dj
-kjd
-ldk
-kdkd
-kd
-jdjjdjdjdjdjd RINEX VERSION / TYPE
-
-kdkd
-kdkd
-
+     2.11           OBSERVATION DATA    M (MIXED)           RINEX VERSION / TYPE
+gLAB                gAGE                 17-MAR-10 12:14    PGM / RUN BY / DATE 
+MRKR                                                        MARKER NAME         
+9080.1.34                                                   MARKER NUMBER       
+gAGE                UPC: Technical University of Catalonia  OBSERVER / AGENCY   
+IR2200716006        ASHTECH UZ-12       CQ00                REC # / TYPE / VERS 
+482                 AOAD/M_T        NONE                    ANT # / TYPE        
+   4789028.4701    176610.0133   4195017.0310               APPROX POSITION XYZ 
+         0.9030         0.0000         0.0000               ANTENNA: DELTA H/E/N
+     1     1                                                WAVELENGTH FACT L1/2
+    11    L1    L2    P1    P2    C1    S1    S2   D1    D2 # / TYPES OF OBSERV 
+    30.0010                                                 INTERVAL
+                                                            END OF HEADER       
+dddd
+ddd
+dd
