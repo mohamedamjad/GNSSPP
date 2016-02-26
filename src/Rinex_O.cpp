@@ -227,7 +227,7 @@ Rinex_O::Rinex_O(bool bool_header, std::string file_path):rinex_file_path(file_p
 // demandée
 // -----------------------------------------------------------------------------------
 void Rinex_O::getEpoch(int index){
-    unsigned short int counter=0;
+    short int counter=0;
     int line_counter=0;
     std::cout<<"\n"<<rinex_file_path<<"\n";
     std::ifstream Ofile (rinex_file_path.c_str());
@@ -236,15 +236,24 @@ void Rinex_O::getEpoch(int index){
         std::string line;
         std::cout<<"\n"<<data_start;
         while(getline (Ofile, line)){
+            std::cout<<"\nLIGNE:"<<line<<"\n";
             line_counter++;
             if(line_counter<=data_start){
                 std::cout<<line_counter<<"\n";
                 continue;
             }
             //break;
+            if (line.substr(0,1).find(" ")!=std::string::npos && line.substr(3,1).find(" ")!=std::string::npos && line.substr(6,1).find(" ")!=std::string::npos && line.substr(9,1).find(" ")!=std::string::npos && index != counter){
+                std::cout<<"\nLIGNE:"<<line<<"\n";
+                getline (Ofile, line);
+                std::cout<<"\nLIGNE:"<<line<<"\n";
+                counter++;
+                continue;
+            }
             // Parse data from here
-            if (line.substr(0,1).find(" ")!=std::string::npos && line.substr(3,1).find(" ")!=std::string::npos && line.substr(6,1).find(" ")!=std::string::npos && line.substr(9,1).find(" ")!=std::string::npos && index==counter){
+            if (line.substr(0,1).find(" ")!=std::string::npos && line.substr(3,1).find(" ")!=std::string::npos && line.substr(6,1).find(" ")!=std::string::npos && line.substr(9,1).find(" ")!=std::string::npos && index == counter ){
                     counter++;
+                    std::cout<<"ENTRER";
                     std::cout<<"\nLINE        :"<<line.size()<<"\n";
                     epoch.year = std::stoi(line.substr(0, 3));
                     epoch.month = std::stoi(line.substr(3, 3));
@@ -274,6 +283,89 @@ void Rinex_O::getEpoch(int index){
                             tmp_PRN.push_back(line.substr(32+(i-12)*3, 3));
                             std::cout<<tmp_PRN.at(i);
                             tmp_obs.PRN=line.substr(32+(i-12)*3, 3);
+                        }
+                        for( int i = 0; i<epoch.satellite_number; i++){
+                           for (int j = 0 ; j<ceil(header.number_of_obs/5.0); j++){
+                                char_counter=0;
+                                getline (Ofile, line);
+                                std::cout<<"\n"<<line<<"\n";
+                                line_length = line.size();
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                     setObservation(i ,j*5+0, line.substr(0, 14), tmp_obs, tmp_PRN);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    if(line.substr(14, 1).find(" ")==std::string::npos)
+                                        tmp_obs.L1LLI=std::stoi(line.substr(14, 1));
+                                        std::cout<<"\nL1LLI:"<<tmp_obs.L1LLI;
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                     if(line.substr(15, 1).find(" ")==std::string::npos)
+                                         tmp_obs.L1SSI=std::stoi(line.substr(15, 1));
+                                         std::cout<<"\nL1SSI:"<<tmp_obs.L1SSI;
+                                }else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    setObservation(i, j*5+1, line.substr(16, 14), tmp_obs, tmp_PRN);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(30, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(31, 1);
+                                }else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    setObservation(i, j*5+2, line.substr(32, 14), tmp_obs, tmp_PRN);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(46, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(47, 1);
+                                }else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    setObservation(i, j*5+3, line.substr(48, 14), tmp_obs, tmp_PRN);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(62, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(63, 1);
+                                }else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    line.substr(64, 14);
+                                    setObservation(i, j*5+4, line.substr(64, 14), tmp_obs, tmp_PRN);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(78, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(79, 1);
+                                }else continue;
+                            }
+                        
+                            std::cout<<"\n\nNOMBRE DE STATELLITES PARC:"<<i<<"\n\n";
+                        
+                        } //epoch.observations.push_back(tmp_obs);
+                    }
+                    else{ // Le nombre de satellites de l'epoch est <= 12 donc l'entete de l'epoch s'etale sur 1 ligne
+                        for ( int i = 0; i<epoch.satellite_number; i++){
+                            tmp_PRN.push_back(line.substr(32+i*3, 3));
+                            std::cout<<tmp_PRN.at(i);
+                            tmp_obs.PRN=line.substr(32+i*3, 3);
                         }
                         for( int i = 0; i<epoch.satellite_number; i++){
                            for (int j = 0 ; j<ceil(header.number_of_obs/5.0); j++){
@@ -340,20 +432,9 @@ void Rinex_O::getEpoch(int index){
                                     line.substr(79, 1);
                                 }else continue;
                             }
-                        
-                            std::cout<<"\n\nNOMBRE DE STATELLITES PARC:"<<i<<"\n\n";
-                        
-                        } //epoch.observations.push_back(tmp_obs);
-                    }
-                    else{ // Le nombre de satellites de l'epoch est <= 12 donc l'entete de l'epoch s'etale sur 1 ligne
-                        for ( int i = 0; i<12; i++){
-                            //tmp_PRN.push_back(line.substr(32+i*3, 3));
-
                         }
-                        epoch.observations.push_back(tmp_obs);
                     }
-                    //std::cout<<"\n\n         "<<epoch.observations.at(4).PRN;
-                    
+                break;   
             }
         }
         std::cout<<"\nJ'ai trouvé :"<<counter<<" epochs";
@@ -415,11 +496,9 @@ void Rinex_O::setObservation(int s_index, int m_index, std::string obs, observat
 }
 
 // -----------------------------------------------------------------------------------
-// Fonction qui remplit SSI et LLI
+// Fonction qui permet de parser les LLI et les SSI
 // -----------------------------------------------------------------------------------
-//void Rinex::O::setObservations 
-
-
+//void Rinex_O::setSmallObservation(int s_index, int m_index, std::string obs, observation &obser, std::vector <std::string> tmp_PRN)
 
 // -----------------------------------------------------------------------------------
 // Fonction principale
