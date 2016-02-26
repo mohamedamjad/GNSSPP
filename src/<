@@ -1,4 +1,6 @@
 #include "../include/Rinex_O.h"
+//#include <iostream>
+
 
 // -----------------------------------------------------------------------------------
 // Constructeur qui prend en entrée le chemin vers le fichier à parser, commence par
@@ -126,7 +128,7 @@ Rinex_O::Rinex_O(bool bool_header, std::string file_path):rinex_file_path(file_p
                         header.observations[i]="D2";
                     }
                     // First Line of # / TYPES OF OBSERV
-                    std::cout<<header.observations[i]<<"	"<<i<<"\n";
+                    std::cout<<header.observations[i]<<"\n";
                     if(i>7){
                         break;
                     }
@@ -232,8 +234,9 @@ void Rinex_O::getEpoch(int index){
     std::cout<<"\n"<<rinex_file_path<<"\n";
     std::ifstream Ofile (rinex_file_path.c_str());
     if(Ofile.is_open()){
-        // read file line by line
         std::string line;
+        std::cout<<"File opened to read data OK";
+        // read file line by line
         std::cout<<"\n"<<data_start;
         while(getline (Ofile, line)){
             line_counter++;
@@ -243,7 +246,7 @@ void Rinex_O::getEpoch(int index){
             }
             //break;
             // Parse data from here
-            if (line.substr(0,1).find(" ")!=std::string::npos && line.substr(3,1).find(" ")!=std::string::npos && line.substr(6,1).find(" ")!=std::string::npos && line.substr(9,1).find(" ")!=std::string::npos && index==counter){
+            if (line.substr(0,1).find(" ")!=std::string::npos && line.substr(3,1).find(" ")!=std::string::npos && line.substr(6,1).find(" ")!=std::string::npos && line.substr(9,1).find(" ")!=std::string::npos && index == counter){
                     counter++;
                     std::cout<<"\nLINE        :"<<line.size()<<"\n";
                     epoch.year = std::stoi(line.substr(0, 3));
@@ -276,74 +279,54 @@ void Rinex_O::getEpoch(int index){
                             tmp_obs.PRN=line.substr(32+(i-12)*3, 3);
                         }
                         for( int i = 0; i<epoch.satellite_number; i++){
-                           for (int j = 0 ; j<ceil(header.number_of_obs/5.0); j++){
+                           tmp_obs.PRN=tmp_PRN.at(i);
+                           
+                           for (int j = 0 ; j<header.number_of_obs/5; j++){
                                 char_counter=0;
                                 getline (Ofile, line);
                                 std::cout<<"\n"<<line<<"\n";
                                 line_length = line.size();
                                 char_counter+=14;
                                 if (char_counter<=line_length){
-                                     setObservation(i ,j*5+0, line.substr(0, 14), tmp_obs, tmp_PRN);
+                                     setObservation(i*j+0, line.substr(0, 14), tmp_obs, tmp_PRN);
                                 }else continue;
                                 char_counter+=1;
                                 if (char_counter<=line_length){
+                                    //setObservation(j+i*j+1, line.substr(0, 14), tmp_obs, tmp_PRN);
                                 }else continue;
                                 char_counter+=1;
                                 if (char_counter<=line_length) line.substr(15, 1); else continue;
                                 char_counter+=14;
                                 if (char_counter<=line_length){
-                                    setObservation(i, j*5+1, line.substr(16, 14), tmp_obs, tmp_PRN);
+                                    line.substr(16, 14);
+                                    setObservation(i*j+1, line.substr(16, 14), tmp_obs, tmp_PRN);
                                 }else continue;
                                 char_counter+=1;
-                                if (char_counter<=line_length){
-                                    line.substr(30, 1);
-                                }else continue;
+                                if (char_counter<=line_length) line.substr(30, 1); else continue;
                                 char_counter+=1;
-                                if (char_counter<=line_length){
-                                    line.substr(31, 1);
-                                }else continue;
+                                if (char_counter<=line_length) line.substr(31, 1); else continue;
                                 char_counter+=14;
-                                if (char_counter<=line_length){
-                                    setObservation(i, j*5+2, line.substr(32, 14), tmp_obs, tmp_PRN);
-                                }else continue;
+                                if (char_counter<=line_length) line.substr(32, 14); else continue;
                                 char_counter+=1;
-                                if (char_counter<=line_length){
-                                    line.substr(46, 1);
-                                }else continue;
+                                if (char_counter<=line_length) line.substr(46, 1); else continue;
                                 char_counter+=1;
-                                if (char_counter<=line_length){
-                                    line.substr(47, 1);
-                                }else continue;
+                                if (char_counter<=line_length) line.substr(47, 1); else continue;
                                 char_counter+=14;
-                                if (char_counter<=line_length){
-                                    setObservation(i, j*5+3, line.substr(48, 14), tmp_obs, tmp_PRN);
-                                }else continue;
+                                if (char_counter<=line_length) line.substr(48, 14); else continue;
                                 char_counter+=1;
-                                if (char_counter<=line_length){
-                                    line.substr(62, 1);
-                                }else continue;
+                                if (char_counter<=line_length) line.substr(62, 1); else continue;
                                 char_counter+=1;
-                                if (char_counter<=line_length){
-                                    line.substr(63, 1);
-                                }else continue;
+                                if (char_counter<=line_length) line.substr(63, 1); else continue;
                                 char_counter+=14;
-                                if (char_counter<=line_length){
-                                    line.substr(64, 14);
-                                    setObservation(i, j*5+4, line.substr(64, 14), tmp_obs, tmp_PRN);
-                                }else continue;
+                                if (char_counter<=line_length) line.substr(64, 14); else continue;
                                 char_counter+=1;
-                                if (char_counter<=line_length){
-                                    line.substr(78, 1);
-                                }else continue;
+                                if (char_counter<=line_length) line.substr(78, 1); else continue;
                                 char_counter+=1;
-                                if (char_counter<=line_length){
-                                    line.substr(79, 1);
-                                }else continue;
+                                if (char_counter<=line_length) line.substr(79, 1); else continue;
                             }
-                        
-                            std::cout<<"\n\nNOMBRE DE STATELLITES PARC:"<<i<<"\n\n";
-                        
-                        } //epoch.observations.push_back(tmp_obs);
+                        }
+                        std::cout<<"\n\nNOMBRE DE STATELLITES PARC:"<<i<<"\n\n";
+                         //epoch.observations.push_back(tmp_obs);
                     }
                     else{ // Le nombre de satellites de l'epoch est <= 12 donc l'entete de l'epoch s'etale sur 1 ligne
                         for ( int i = 0; i<12; i++){
@@ -369,49 +352,25 @@ void Rinex_O::getEpoch(int index){
 // découpés depuis le fichier RINEX. Elle prend en entrée l'odre de l'observable
 // et la valeur de la substr
 // -----------------------------------------------------------------------------------
-void Rinex_O::setObservation(int s_index, int m_index, std::string obs, observation &obser, std::vector <std::string> tmp_PRN){
-    obser.PRN = tmp_PRN.at(s_index);
+void Rinex_O::setObservation(int i, std::string obs, observation &obser, std::vector <std::string> tmp_PRN){
+    obser.PRN = tmp_PRN.at(i);
     std::cout<<"\nREMPLIR OBSERVATION POUR PRN:"<<obser.PRN<<"\n\n\n";
-    if(header.observations[m_index].find("L1") != std::string::npos && obs.find("              ")==std::string::npos){
+    if(header.observations[i].find("L1") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.L1 = std::stod(obs);
         std::cout<<"\nREMPLIR OBSERVATION POUR L1:"<<obser.L1<<"\n\n\n";
     }
-    else if(header.observations[m_index].find("L2") != std::string::npos && obs.find("              ")==std::string::npos){
+    else if(header.observations[i].find("L2") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.L2 = std::stod(obs);
         std::cout<<"\nREMPLIR OBSERVATION POUR L2:"<<obser.L2<<"\n\n\n";
     }
-    else if(header.observations[m_index].find("P1") != std::string::npos && obs.find("              ")==std::string::npos){
-        obser.P1 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR P1:"<<obser.P1<<"\n\n\n";
-    }
-    else if(header.observations[m_index].find("P2") != std::string::npos && obs.find("              ")==std::string::npos){
-        obser.P2 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR P2:"<<obser.P2<<"\n\n\n";
-    }
-    else if(header.observations[m_index].find("C1") != std::string::npos && obs.find("              ")==std::string::npos){
-        obser.C1 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR C1:"<<obser.C1<<"\n\n\n";
-    }
-    else if(header.observations[m_index].find("C2") != std::string::npos && obs.find("              ")==std::string::npos){
-        obser.C2 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR C2:"<<obser.C2<<"\n\n\n";
-    }
-    else if(header.observations[m_index].find("D1") != std::string::npos && obs.find("              ")==std::string::npos){
-        obser.D1 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR D1:"<<obser.D1<<"\n\n\n";
-    }
-    else if(header.observations[m_index].find("D2") != std::string::npos && obs.find("              ")==std::string::npos){
-        obser.D2 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR D2:"<<obser.D2<<"\n\n\n";
-    }
-    else if(header.observations[m_index].find("S1") != std::string::npos && obs.find("              ")==std::string::npos){
-        obser.S1 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR S1:"<<obser.S1<<"\n\n\n";
-    }
-    else if(header.observations[m_index].find("S2") != std::string::npos && obs.find("              ")==std::string::npos){
-        obser.S2 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR S2:"<<obser.S2<<"\n\n\n";
-    }
+    else if(header.observations[i].find("P1") != std::string::npos && obs.find("              ")==std::string::npos) obser.P1 = std::stod(obs);
+    else if(header.observations[i].find("P2") != std::string::npos && obs.find("              ")==std::string::npos) obser.P2 = std::stod(obs);
+    else if(header.observations[i].find("C1") != std::string::npos && obs.find("              ")==std::string::npos) obser.C1 = std::stod(obs);
+    else if(header.observations[i].find("C2") != std::string::npos && obs.find("              ")==std::string::npos) obser.C2 = std::stod(obs);
+    else if(header.observations[i].find("D1") != std::string::npos && obs.find("              ")==std::string::npos) obser.D1 = std::stod(obs);
+    else if(header.observations[i].find("D2") != std::string::npos && obs.find("              ")==std::string::npos) obser.D2 = std::stod(obs);
+    else if(header.observations[i].find("S1") != std::string::npos && obs.find("              ")==std::string::npos) obser.S1 = std::stod(obs);
+    else if(header.observations[i].find("S2") != std::string::npos && obs.find("              ")==std::string::npos) obser.S2 = std::stod(obs);
 }
 
 // -----------------------------------------------------------------------------------

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <iomanip>
 #include <vector>
+#include <math.h>
 
 class Rinex_O{
     private:
@@ -118,5 +119,6 @@ class Rinex_O{
             void getEpoch(int index);
             void getEpoch(int year, int month, int day, int hour, int minute, double seconde);
             void getSatelliteData(std::string PRN);
+            void setObservation(int satellite_index, int measurement_index, std::string obs, observation &obser, std::vector <std::string> tmp_PRN);
 };
 #endif
