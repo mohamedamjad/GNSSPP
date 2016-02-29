@@ -8,15 +8,17 @@
 #include <vector>
 #include <math.h>
 
-class Rinex_I{
+class Ionex{
     private:
+        std::string ionex_file;
         struct header{
             std::string version;
             std::string type;
+            std::string satellite_system;
             std::string pgm;
             std::string run_by;
             std::string date;
-            std::string description;
+            std::string description="";
             typedef struct epoch_first_map{
                 short int year;
                 short int month;
