@@ -1,2 +1,0 @@
-struct epoch;
-struct header;
