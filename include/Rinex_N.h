@@ -10,6 +10,8 @@
 
 class Rinex_N{
     private:
+        std::string Nfile;
+        int index_start_data;
         struct header{
             std::string version;
             std::string rinex_type;
@@ -27,7 +29,7 @@ class Rinex_N{
             short int leap_senconds;
             }header;
 
-        typedef struct ephemeris{
+        struct ephemeris{
             short int PRN; // Pseudo Random Noise
             unsigned int unix_time;
             int year;
@@ -69,6 +71,6 @@ class Rinex_N{
 
     public:
         Rinex_N(std::string file_path);
-        void getEphemeris( short int PRN, ephemeris& eph);
+        void getEphemeris( short int PRN);
 };
 #endif
