@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <vector>
 #include <math.h>
+#include <ctime>
 
 class Rinex_N{
     private:
@@ -26,10 +27,10 @@ class Rinex_N{
                 int T;
                 int W;
                 }delta_utc;
-            short int leap_senconds;
+            short int leap_seconds;
             }header;
-
-        struct ephemeris{
+    public:
+        typedef struct eph{
             short int PRN; // Pseudo Random Noise
             unsigned int unix_time;
             int year;
@@ -38,11 +39,12 @@ class Rinex_N{
             int hour;
             int minute;
             double seconde;
+            time_t date_time;
             double SV_clock_bias;
             double SV_clock_drift;
             double SV_clock_drift_rate;
             double IODE; // Issue of Data Ephemeris
-            double Crs; // Radius Correction Sinus Component
+            double crs;
             double delta_n;
             double Mo; // Mo angle
             double cuc;
@@ -56,7 +58,7 @@ class Rinex_N{
             double Io;
             double crc;
             double omega;
-            double Omega_dot; // angular velocity
+            double OMEGA_dot; // angular velocity
             double I_dot; // Inclination rate
             double L2_codes_channel;
             double gps_week;
@@ -64,13 +66,13 @@ class Rinex_N{
             double sv_accuracy;
             double sv_health;
             double TGD; // Total Group Delay
-            double IoDC; // Issue of Data Clock
+            double IODC; // Issue of Data Clock
             double transmission_time;
             double fit_interval;
-            }ephemeris;
+            }eph;
+    eph *ephemeris;
 
-    public:
         Rinex_N(std::string file_path);
-        void getEphemeris( short int PRN);
+        void getEphemeris( short int PRN, std::vector<eph> &);
 };
 #endif
