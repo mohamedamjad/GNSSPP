@@ -116,6 +116,7 @@ class Rinex_O{
             Rinex_O(std::string);
             Rinex_O(bool, std::string);
             void getEpoch(float start);
+            void logEpochs();
             void getEpoch(int index);
             void getEpoch(int year, int month, int day, int hour, int minute, double seconde);
             void getSatelliteData(std::string PRN);

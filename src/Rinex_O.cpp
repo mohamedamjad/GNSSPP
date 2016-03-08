@@ -133,7 +133,7 @@ Rinex_O::Rinex_O(bool bool_header, std::string file_path):rinex_file_path(file_p
                 }
                 // en fonction de number_of_obs
             }
-            
+
 
             else if(line.find("# / TYPES OF OBSERV")!=std::string::npos && line.substr(0, 6).find("      ")!=std::string::npos){
                 int i = 8;
@@ -220,8 +220,236 @@ Rinex_O::Rinex_O(bool bool_header, std::string file_path):rinex_file_path(file_p
         std::cout<<"Can\'t open the file !\n";
     }
 }
+// -----------------------------------------------------------------------------------
+// Fonction pour logger tous les epochs d'un rinex dans un fichier .m
+// -----------------------------------------------------------------------------------
+void Rinex_O::logEpochs(){
+    std::string prn_matrix_format;
+    std::string obs_ligne, obs_ligne_start;
+    short int counter=0;
+    int line_counter=0;
+    std::ifstream Ofile (rinex_file_path.c_str());
+    if(Ofile.is_open()){
+        // read file line by line
+        std::string line;
+        while(getline (Ofile, line)){
+            line_counter++;
+            if(line_counter<=data_start){
+                continue;
+            }
+            //break;
+            // Parse data from here
+            if (line.substr(0,1).find(" ")!=std::string::npos && line.substr(3,1).find(" ")!=std::string::npos && line.substr(6,1).find(" ")!=std::string::npos && line.substr(9,1).find(" ")!=std::string::npos){
+                    obs_ligne_start="";
+                    counter++;
+                    epoch.year = std::stoi(line.substr(0, 3));
+                    obs_ligne_start+=line.substr(0, 3)+" ";
+                    epoch.month = std::stoi(line.substr(3, 3));
+                    obs_ligne_start+=line.substr(3, 3)+" ";
+                    epoch.day = std::stoi(line.substr(6, 3));
+                    obs_ligne_start+=line.substr(6, 3)+" ";
+                    epoch.hour = std::stoi(line.substr(9, 3));
+                    obs_ligne_start+=line.substr(9, 3)+" ";
+                    epoch.minute = std::stoi(line.substr(12, 3));
+                    obs_ligne_start+=line.substr(12, 3)+" ";
+                    epoch.seconde = std::stod(line.substr(15, 11));
+                    obs_ligne_start+=line.substr(15, 11)+" ";
+                    epoch.satellite_number = std::stoi(line.substr(29, 3));
+                    if(line.size()<=68) epoch.receiver_clock_offset=0.0;
+                    else epoch.receiver_clock_offset=std::stod(line.substr( 69, 12));
+                    observation tmp_obs;
+                    short int line_length;
+                    short int char_counter=0;
+                    std::vector <std::string> tmp_PRN;
 
+                    if(epoch.satellite_number>12){
+                        for ( int i = 0; i<12; i++){
+                            tmp_PRN.push_back(line.substr(32+i*3, 3));
+                            tmp_obs.PRN=line.substr(32+i*3, 3);
+                        }
+                        getline (Ofile, line);
+                        for ( int i = 12; i<epoch.satellite_number; i++){
+                            tmp_PRN.push_back(line.substr(32+(i-12)*3, 3));
+                            tmp_obs.PRN=line.substr(32+(i-12)*3, 3);
+                        }
+                        for( int i = 0; i<epoch.satellite_number; i++){
+                            obs_ligne+="\n";
+                            std::cout<<obs_ligne;
+                            if(tmp_PRN[i].find("G")!=std::string::npos){
+                                prn_matrix_format = std::to_string(std::stoi(tmp_PRN[i].substr(1,2))+100);
+                            }else if(tmp_PRN[i].find("R")!=std::string::npos){
+                                prn_matrix_format = std::to_string(std::stoi(tmp_PRN[i].substr(1,2))+200);
+                            }
+                            obs_ligne=obs_ligne_start+" "+prn_matrix_format+" ";
+                            for (int j = 0 ; j<ceil(header.number_of_obs/5.0); j++){
+                                char_counter=0;
+                                getline (Ofile, line);
+                                line_length = line.size();
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                     setObservation(i ,j*5+0, line.substr(0, 14), tmp_obs, tmp_PRN);
+                                     obs_ligne+=line.substr(0, 14)+" ";
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    if(line.substr(14, 1).find(" ")==std::string::npos)
+                                        tmp_obs.L1LLI=std::stoi(line.substr(14, 1));
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                     if(line.substr(15, 1).find(" ")==std::string::npos)
+                                         tmp_obs.L1SSI=std::stoi(line.substr(15, 1));
+                                }else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    setObservation(i, j*5+1, line.substr(16, 14), tmp_obs, tmp_PRN);
+                                    obs_ligne+=line.substr(16, 14)+" ";
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(30, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(31, 1);
+                                }else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    setObservation(i, j*5+2, line.substr(32, 14), tmp_obs, tmp_PRN);
+                                    obs_ligne+=line.substr(32, 14)+" ";
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(46, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(47, 1);
+                                }else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    setObservation(i, j*5+3, line.substr(48, 14), tmp_obs, tmp_PRN);
+                                    obs_ligne+=line.substr(48, 14)+" ";
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(62, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(63, 1);
+                                }else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    line.substr(64, 14);
+                                    setObservation(i, j*5+4, line.substr(64, 14), tmp_obs, tmp_PRN);
+                                    obs_ligne+=line.substr(64, 14)+" ";
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(78, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(79, 1);
+                                }else continue;
+                            }
+                        } //epoch.observations.push_back(tmp_obs);
+                    }
+                    else{ // Le nombre de satellites de l'epoch est <= 12 donc l'entete de l'epoch s'etale sur 1 ligne
+                        for ( int i = 0; i<epoch.satellite_number; i++){
+                            tmp_PRN.push_back(line.substr(32+i*3, 3));
+                            tmp_obs.PRN=line.substr(32+i*3, 3);
+                        }
+                        for( int i = 0; i<epoch.satellite_number; i++){
+                            obs_ligne+="\n";
+                            std::cout<<obs_ligne;
+                            if(tmp_PRN[i].find("G")!=std::string::npos){
+                                prn_matrix_format = std::to_string(std::stoi(tmp_PRN[i].substr(1,2))+100);
+                            }else if(tmp_PRN[i].find("R")!=std::string::npos){
+                                prn_matrix_format = std::to_string(std::stoi(tmp_PRN[i].substr(1,2))+200);
+                            }
+                            obs_ligne=obs_ligne_start+" "+prn_matrix_format+" ";
+                           for (int j = 0 ; j<ceil(header.number_of_obs/5.0); j++){
+                                char_counter=0;
+                                getline (Ofile, line);
+                                line_length = line.size();
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                     setObservation(i ,j*5+0, line.substr(0, 14), tmp_obs, tmp_PRN);
+                                     obs_ligne+=line.substr(0, 14)+" ";
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length) line.substr(15, 1); else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    setObservation(i, j*5+1, line.substr(16, 14), tmp_obs, tmp_PRN);
+                                    obs_ligne+=line.substr(16, 14)+" ";
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(30, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(31, 1);
+                                }else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    setObservation(i, j*5+2, line.substr(32, 14), tmp_obs, tmp_PRN);
+                                    obs_ligne+=line.substr(32, 14)+" ";
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(46, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(47, 1);
+                                }else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    setObservation(i, j*5+3, line.substr(48, 14), tmp_obs, tmp_PRN);
+                                    obs_ligne+=line.substr(48, 14)+" ";
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(62, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(63, 1);
+                                }else continue;
+                                char_counter+=14;
+                                if (char_counter<=line_length){
+                                    line.substr(64, 14);
+                                    setObservation(i, j*5+4, line.substr(64, 14), tmp_obs, tmp_PRN);
+                                    obs_ligne+=line.substr(64, 14)+" ";
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(78, 1);
+                                }else continue;
+                                char_counter+=1;
+                                if (char_counter<=line_length){
+                                    line.substr(79, 1);
+                                }else continue;
+                            }
+                        }
+                    }
+                //break;
+                // LOGGER LA LIGNE DES OBS
+            }
+        }
+        Ofile.close();
+    }else{
+        std::cout<<"Problem Occured when trying to open file";
+    }
 
+}
 // -----------------------------------------------------------------------------------
 // Fonction qui prend en entrée le numero de l'epoch à retourner et retourne l'epoch
 // demandée
@@ -276,9 +504,9 @@ void Rinex_O::getEpoch(int index){
                             std::cout<<tmp_PRN.at(i);
                             tmp_obs.PRN=line.substr(32+i*3, 3);
                         }
-                        
+
                         getline (Ofile, line);
-                        
+
                         for ( int i = 12; i<epoch.satellite_number; i++){
                             tmp_PRN.push_back(line.substr(32+(i-12)*3, 3));
                             std::cout<<tmp_PRN.at(i);
@@ -298,13 +526,11 @@ void Rinex_O::getEpoch(int index){
                                 if (char_counter<=line_length){
                                     if(line.substr(14, 1).find(" ")==std::string::npos)
                                         tmp_obs.L1LLI=std::stoi(line.substr(14, 1));
-                                        std::cout<<"\nL1LLI:"<<tmp_obs.L1LLI;
                                 }else continue;
                                 char_counter+=1;
                                 if (char_counter<=line_length){
                                      if(line.substr(15, 1).find(" ")==std::string::npos)
                                          tmp_obs.L1SSI=std::stoi(line.substr(15, 1));
-                                         std::cout<<"\nL1SSI:"<<tmp_obs.L1SSI;
                                 }else continue;
                                 char_counter+=14;
                                 if (char_counter<=line_length){
@@ -356,9 +582,9 @@ void Rinex_O::getEpoch(int index){
                                     line.substr(79, 1);
                                 }else continue;
                             }
-                        
+
                             std::cout<<"\n\nNOMBRE DE STATELLITES PARC:"<<i<<"\n\n";
-                        
+
                         } //epoch.observations.push_back(tmp_obs);
                     }
                     else{ // Le nombre de satellites de l'epoch est <= 12 donc l'entete de l'epoch s'etale sur 1 ligne
@@ -434,7 +660,7 @@ void Rinex_O::getEpoch(int index){
                             }
                         }
                     }
-                break;   
+                break;
             }
         }
         std::cout<<"\nJ'ai trouvé :"<<counter<<" epochs";
@@ -452,46 +678,35 @@ void Rinex_O::getEpoch(int index){
 // -----------------------------------------------------------------------------------
 void Rinex_O::setObservation(int s_index, int m_index, std::string obs, observation &obser, std::vector <std::string> tmp_PRN){
     obser.PRN = tmp_PRN.at(s_index);
-    std::cout<<"\nREMPLIR OBSERVATION POUR PRN:"<<obser.PRN<<"\n\n\n";
     if(header.observations[m_index].find("L1") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.L1 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR L1:"<<obser.L1<<"\n\n\n";
     }
     else if(header.observations[m_index].find("L2") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.L2 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR L2:"<<obser.L2<<"\n\n\n";
     }
     else if(header.observations[m_index].find("P1") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.P1 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR P1:"<<obser.P1<<"\n\n\n";
     }
     else if(header.observations[m_index].find("P2") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.P2 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR P2:"<<obser.P2<<"\n\n\n";
     }
     else if(header.observations[m_index].find("C1") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.C1 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR C1:"<<obser.C1<<"\n\n\n";
     }
     else if(header.observations[m_index].find("C2") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.C2 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR C2:"<<obser.C2<<"\n\n\n";
     }
     else if(header.observations[m_index].find("D1") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.D1 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR D1:"<<obser.D1<<"\n\n\n";
     }
     else if(header.observations[m_index].find("D2") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.D2 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR D2:"<<obser.D2<<"\n\n\n";
     }
     else if(header.observations[m_index].find("S1") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.S1 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR S1:"<<obser.S1<<"\n\n\n";
     }
     else if(header.observations[m_index].find("S2") != std::string::npos && obs.find("              ")==std::string::npos){
         obser.S2 = std::stod(obs);
-        std::cout<<"\nREMPLIR OBSERVATION POUR S2:"<<obser.S2<<"\n\n\n";
     }
 }
 
@@ -506,7 +721,7 @@ void Rinex_O::setObservation(int s_index, int m_index, std::string obs, observat
 
 int main(int argc, char *argv[]){
     Rinex_O r(true, argv[1]);
-    r.getEpoch(0);
+    r.logEpochs();
     std::cout<<"Fonction principale\n";
     return 0;
 }
