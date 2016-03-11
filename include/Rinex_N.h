@@ -30,7 +30,7 @@ class Rinex_N{
             short int leap_seconds;
             }header;
     public:
-        typedef struct eph{
+        struct ephemeris{
             short int PRN; // Pseudo Random Noise
             unsigned int unix_time;
             int year;
@@ -69,10 +69,10 @@ class Rinex_N{
             double IODC; // Issue of Data Clock
             double transmission_time;
             double fit_interval;
-            }eph;
-    eph *ephemeris;
+            }ephemeris;
 
         Rinex_N(std::string file_path);
-        void getEphemeris( short int PRN, std::vector<eph> &);
+        void getEphemeris();
+        double getUnixTime(int y, int M, int d, int h, int m, int s);
 };
 #endif
