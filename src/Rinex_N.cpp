@@ -45,6 +45,16 @@ Rinex_N::Rinex_N(std::string file_path):Nfile(file_path){
 
 
 void Rinex_N::getEphemeris(){
+    struct tm start;
+    struct tm data;
+    long int seconds;   
+    start.tm_year = 1970 - 1900;
+    start.tm_mon = 1;
+    start.tm_mday = 1;
+    start.tm_hour = 0;
+    start.tm_min = 0;
+    start.tm_sec = 0;
+
     std::ifstream NfileStream(Nfile.c_str());
     std::string line;
     int line_counter=0;
@@ -72,6 +82,16 @@ void Rinex_N::getEphemeris(){
             matrix += line.substr(14, 3)+" ";
             ephemeris.seconde = std::stod(line.substr(17, 5));
             matrix += line.substr(17, 5)+" ";
+            // Ajout du timestamp UNIX
+            data.tm_year = ephemeris.year+2000 - 1900;
+            data.tm_mon = ephemeris.month;
+            data.tm_mday = ephemeris.day;
+            data.tm_hour = ephemeris.hour;
+            data.tm_min = ephemeris.minute;
+            data.tm_sec = ephemeris.seconde;
+
+            seconds = (time_t)mktime(&data)-(time_t)mktime(&start);
+            matrix += std::to_string(seconds)+" ";
             ephemeris.SV_clock_bias = std::stod(line.substr(22, 19));
             matrix += line.substr(22, 19)+" ";
             ephemeris.SV_clock_drift = std::stod(line.substr(41, 19));

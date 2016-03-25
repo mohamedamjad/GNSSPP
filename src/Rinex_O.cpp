@@ -224,6 +224,16 @@ Rinex_O::Rinex_O(bool bool_header, std::string file_path):rinex_file_path(file_p
 // Fonction pour logger tous les epochs d'un rinex dans un fichier .m
 // -----------------------------------------------------------------------------------
 void Rinex_O::logEpochs(){
+    struct tm start={0};
+    struct tm data;
+    long int seconds;
+    start.tm_year = 1970 - 1900;
+    start.tm_mon = 1;
+    start.tm_mday = 1;
+    start.tm_hour = 0;
+    start.tm_min = 0;
+    start.tm_sec = 0;
+
     std::string prn_matrix_format;
     std::string obs_ligne, obs_ligne_start;
     short int counter=0;
@@ -255,6 +265,16 @@ void Rinex_O::logEpochs(){
                     epoch.seconde = std::stod(line.substr(15, 11));
                     obs_ligne_start+=line.substr(15, 11)+" ";
                     epoch.satellite_number = std::stoi(line.substr(29, 3));
+                    // Ajout du timestamp UNIX
+                    data.tm_year = epoch.year+2000 - 1900;
+                    data.tm_mon = epoch.month;
+                    data.tm_mday = epoch.day;
+                    data.tm_hour = epoch.hour;
+                    data.tm_min = epoch.minute;
+                    data.tm_sec = epoch.seconde;
+
+                    seconds = (time_t)mktime(&data)-(time_t)mktime(&start);
+                    obs_ligne_start += std::to_string(seconds)+" ";
                     if(line.size()<=68) epoch.receiver_clock_offset=0.0;
                     else epoch.receiver_clock_offset=std::stod(line.substr( 69, 12));
                     observation tmp_obs;

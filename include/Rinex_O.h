@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <vector>
 #include <math.h>
-
+#include <time.h>
 class Rinex_O{
     private:
         // File path
