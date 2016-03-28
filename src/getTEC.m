@@ -11,12 +11,15 @@
 % renvoie la vitesse à l'instant t du satellite prn                           %
 %http://fenrir.naruoka.org/download/autopilot/note/080205_gps/gps_velocity.pdf%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function X,Y,Z,dotX, dotY, dotZ = getSatelliteVelocity(year, month, day, hour, minute, sec, t, prn, M)
+function xk,yk,zk,xkdot, ykdot, zkdot = getSatelliteVelocity(year, month, day, hour, minute, sec, t, prn, M)
   CONST_earth_rotatio_rate = 7.2921151467e-5;
   CONST_mu = 3.986005e14
 
   for i = 1:size(M)(1)
-    if (M(i,1)==prn && M(i,2)==year M(i,3)==month M(i,4)==day M(i,5)==hour)
+    if (M(i,1)==prn && M(i,2)==year && M(i,3)==month && M(i,4)==day && M(i,5)==hour)
+      earth_rate = 7.2921151467e-5
+      OMEGA = M(i, 22);
+      OMEGAdot = M(i, 27);
       i0 = M(i,24);
       idot = M(i,28);
       crs = M(i,13);
@@ -25,10 +28,11 @@ function X,Y,Z,dotX, dotY, dotZ = getSatelliteVelocity(year, month, day, hour, m
       cis = M(i,23);
       crc = M(i,25);
       e = M(i,17);
+      toe = M(i,20);
       omega = M(i,26);
       A = M(i,19)*M(i,19);
       n0 = sqrt(CONST_mu/A*A*A);
-      tk = t-M(i,20);
+      tk = t-toe;
       n = n0 + M(i,14);
       Mk = M(i,15)+n*tk;
       Ek = Mk;
@@ -53,6 +57,24 @@ function X,Y,Z,dotX, dotY, dotZ = getSatelliteVelocity(year, month, day, hour, m
       rkdot = A*e*sin(Ek)*n/(1.0-e*cos(Ek)) + 2.0*(crs*cos(2.0*uk)-crc*sin(2.0*uk))*vkdot;
       ikdot = idot + (cis*cos(2.0*uk)-cic*sin(2.0*uk))*2.0*vkdot;
 
+      xpk = rk*cos(uk);
+      ypk = rk*sin(uk);
+
+      xpkdot = rkdot*cos(uk) - ypk*ukdot;
+      ypkdot = rkdot*sin(uk) + xpk*ukdot;
+   
+      omegak = OMEGA + (OMEGAdot - earth_rate)*tk - earth_rate*toe;
+
+      omegakdot = (OMEGAdot - earth_rate);
+
+      xk = xpk*cos(omegak) - ypk*sin(omegak)*cos(ik);
+      yk = xpk*sin(omegak) + ypk*cos(omegak)*cos(ik);
+      zk =                   ypk*sin(ik);
+
+      xkdot = ( xpkdot-ypk*cos(ik)*omegakdot )*cos(omegak) - ( xpk*omegakdot+ypkdot*cos(ik)-ypk*sin(ik)*ikdot )*sin(omegak);
+      ykdot = ( xpkdot-ypk*cos(ik)*omegakdot )*sin(omegak) + ( xpk*omegakdot+ypkdot*cos(ik)-ypk*sin(ik)*ikdot )*cos(omegak);
+      zkdot = ypkdot*sin(ik) + ypk*cos(ik)*ikdot;
+
       
 
     endif
@@ -73,7 +95,7 @@ endfunction
 %      FONCTIONS POUR TRAITER LES DONNÉES DES FICHIERS D'OBSERVATIONS        %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % fonction qui prend en input le prn et la matrice issue du traitement RINEX
-% et donne le STEC en fonction du temps UNIX
+% et donne le VTEC en fonction du temps UNIX
 function [unix_time,TECvect] = getVTEC (prn, M)
   TECvect=[];
   unix_time=[];
@@ -97,3 +119,19 @@ function [unix_time,TECvect] = getSTEC (prn, M)
     endif
   endfor
 endfunction
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FONCTIONS POUR LA CONVERSION ENTRE DIFFERENTS SYSTÈMES DE TEMPS             %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Fonction qui prend en entrée le unixtim UTC et les leap secondes et retourne
+% le GPSweek et le TOE (TIme Of Ephemeris)
+function TOE= unixToGPSTime(Unixtime, leap_seconds)
+  tmp = Unixtime - 315964800; % On soustrait le nombre de sec entre1/1/1970 et 6/1/1980
+  printf("tmp: %i ",tmp)
+  GPSweek = (tmp-mod(tmp, 604800))/604800;
+  printf("GPSweek: %i ",GPSweek)
+  TOE = tmp - GPSweek*604800 + leap_seconds;
+endfunction
+
+
