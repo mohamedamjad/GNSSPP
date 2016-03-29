@@ -11,36 +11,38 @@
 % renvoie la vitesse à l'instant t du satellite prn                           %
 %http://fenrir.naruoka.org/download/autopilot/note/080205_gps/gps_velocity.pdf%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function xk,yk,zk,xkdot, ykdot, zkdot = getSatelliteVelocity(year, month, day, hour, minute, sec, t, prn, M)
+function [xk,yk,zk,xkdot, ykdot, zkdot] = getSatelliteVelocity(year, month, day, hour, minute, sec, t, prn, M)
   CONST_earth_rotatio_rate = 7.2921151467e-5;
   CONST_mu = 3.986005e14
 
   for i = 1:size(M)(1)
     if (M(i,1)==prn && M(i,2)==year && M(i,3)==month && M(i,4)==day && M(i,5)==hour)
       earth_rate = 7.2921151467e-5
-      OMEGA = M(i, 22);
-      OMEGAdot = M(i, 27);
-      i0 = M(i,24);
-      idot = M(i,28);
-      crs = M(i,13);
-      cus = M(i,18);
-      cic = M(i,21);
-      cis = M(i,23);
-      crc = M(i,25);
-      e = M(i,17);
-      toe = M(i,20);
-      omega = M(i,26);
-      A = M(i,19)*M(i,19);
-      n0 = sqrt(CONST_mu/A*A*A);
-      tk = t-toe;
-      n = n0 + M(i,14);
-      Mk = M(i,15)+n*tk;
-      Ek = Mk;
+      OMEGA = M(i, 22)
+      OMEGAdot = M(i, 27)
+      i0 = M(i,24)
+      idot = M(i,28)
+      crs = M(i,13)
+      cus = M(i,18)
+      cic = M(i,21)
+      cis = M(i,23)
+      crc = M(i,25)
+      cuc = M(i, 16)
+      e = M(i,17)
+      toe = M(i,20)
+      omega = M(i,26)
+      A = M(i,19)*M(i,19)
+      n0 = sqrt(CONST_mu/(A*A*A))
+      tk = t-toe
+      n = n0 + M(i,14)
+      Mk = M(i,15)+n*tk
+      Ek = Mk
       Mkdot = n;
       for j = 1:7
         Ek = Mk +e*sin(Ek);
       endfor
-      Ekdot = Mkdot/(1.0-e*cos(Ek));
+      Ek
+      Ekdot = Mkdot/(1.0-e*cos(Ek))
       vk = atan2(sqrt(1.0-e*e)*sin(Ek),cos(Ek)-e);
       vkdot = sin(Ek)*Ekdot*(1.0+e*cos(vk))/(sin(vk)*(1.0-e*cos(Ek)));
       phik = vk + omega;

@@ -26,23 +26,23 @@
 
 void main(void)
 {
-long double roota                    =  5153.79589081;
-long double toe                      =  93600.0;
-long double m0                       =  1.05827953357;
-long double e                        =  0.00223578442819;
-long double delta_n                  =  0.465376527657e-08;
-long double smallomega               =  2.06374037770;
-long double cus                      =  0.177137553692e-05; 
-long double cuc                      =  0.457651913166e-05; 
-long double crs                      =  88.6875000000; 
-long double crc                      =  344.968750000; 
-long double cis                      = -0.856816768646e-07;
-long double cic                      =  0.651925802231e-07; 
-long double idot                     =  0.342514267094e-09; 
-long double i0                       =  0.961685061380; 
-long double bigomega0                =  1.64046615454; 
+long double roota                    =  5.153794652939e+03;
+long double toe                      =  0;
+long double m0                       =  -3.854266028622e-01;
+long double e                        =  3.248170251027e-04;
+long double delta_n                  =  4.522688445974e-09;
+long double smallomega               =  2.8970;
+long double cus                      =  9.085983037949e-06; 
+long double cuc                      =  -3.296881914139e-07; 
+long double crs                      =  -5.375000000000e+00; 
+long double crc                      =  2.004375000000e+02; 
+long double cis                      = 1.862645149231e-08;
+long double cic                      =   2.607703208923e-08; 
+long double idot                     =  -6.893144388620e-11; 
+long double i0                       =  9.588379623984e-01; 
+long double bigomega0                =  1.389782717091e+00; 
 long double earthrate                =  bOMEGAE84;
-long double bigomegadot              = -0.856928551657e-08; 
+long double bigomegadot              = -7.963189219140e-09; 
 long double t                        =  86400.00;
 long double A;
 long double n0, n;
@@ -61,10 +61,12 @@ n0 = sqrt(bGM84/(A*A*A));  //bGM84 is what the ICD-200 calls Greek mu
 tk = t - toe;              //t is the time of the pos. & vel. request.
 n = n0 + delta_n;
 mk = m0 + n*tk;
+printf("EKDOT:%Lf\n",mk);
 mkdot = n;
 ek = mk;
 for(iter=0; iter<7; iter++) ek = mk + e*sin(ek);  //Overkill for small e
 ekdot = mkdot/(1.0 - e*cos(ek));
+printf("EKDOT:%Lf\n",ekdot);
 //In the line, below, tak is the true anomaly (which is nu in the ICD-200).
 tak = atan2( sqrt(1.0-e*e)*sin(ek), cos(ek)-e);
 takdot = sin(ek)*ekdot*(1.0+e*cos(tak))/(sin(tak)*(1.0-e*cos(ek)));
