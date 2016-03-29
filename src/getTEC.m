@@ -85,14 +85,6 @@ function [xk,yk,zk,xkdot, ykdot, zkdot] = getSatelliteVelocity(year, month, day,
 
 endfunction
 
-
-
-function X, Y, Z = getSatellitePosition()
-
-
-endfunction
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %      FONCTIONS POUR TRAITER LES DONNÉES DES FICHIERS D'OBSERVATIONS        %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -128,12 +120,32 @@ endfunction
 
 % Fonction qui prend en entrée le unixtim UTC et les leap secondes et retourne
 % le GPSweek et le TOE (TIme Of Ephemeris)
-function TOE= unixToGPSTime(Unixtime, leap_seconds)
+function [GPS_week,TOE] = unixToGPSTime(Unixtime, leap_seconds)
   tmp = Unixtime - 315964800; % On soustrait le nombre de sec entre1/1/1970 et 6/1/1980
-  printf("tmp: %i ",tmp)
-  GPSweek = (tmp-mod(tmp, 604800))/604800;
-  printf("GPSweek: %i ",GPSweek)
-  TOE = tmp - GPSweek*604800 + leap_seconds;
+  GPS_week = (tmp-mod(tmp, 604800))/604800
+  TOE = tmp - GPS_week*604800 + leap_seconds
+endfunction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Fonction pour ajouter deux columns (GPS_week et TOE) dans la matrice        %
+% d'observations                                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function gpstime = GPSTimeColumn(M, leap_seconds)
+  for i = 1:size(M)(1)
+    [GPS_week,TOE] = unixToGPSTime(M(i,7), leap_seconds);
+    gpstime(end+1,1) = GPS_week;
+    gpstime(end,2) = TOE;
+  endfor
+endfunction
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Fonction pour construire la grande matrice d'observations                   %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function navmatrix = buildNavMatrix(M, N)
+  for i = 1:size(M)(1)
+    for j = 1:size(N)(1)
+      navmatrix(i,1) = M(e)
+    endfor
+  endfor
 endfunction
 
 
