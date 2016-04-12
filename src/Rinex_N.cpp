@@ -189,6 +189,6 @@ void Rinex_N::getEphemeris(){
 }
 
 int main(){
-    Rinex_N r("/home/anonyme/Téléchargements/tmp/brdc0030.16n");
+    Rinex_N r("../dataset/brdc081a.16n");
     r.getEphemeris();
 }
