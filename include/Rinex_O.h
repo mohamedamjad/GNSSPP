@@ -122,4 +122,10 @@ class Rinex_O{
             void getSatelliteData(std::string PRN);
             void setObservation(int satellite_index, int measurement_index, std::string obs, observation &obser, std::vector <std::string> tmp_PRN);
 };
+struct t_gps{
+    int week;
+    int sec;
+}t_gps;
+
+void getGPStime(t_gps &gps_time, int leap_seconds, int year, int mon, int day, int hour, int min, int sec);
 #endif
