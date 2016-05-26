@@ -54,25 +54,30 @@ void getGPStime(t_gps *gps_time, int leap_seconds, int year, int mon, int day, i
   gps_time->sec = seconds % SECONDS_IN_WEEK;
 }
 
-void getChecksum(ubxmsg *ptr_ubx){
+void checksum(unsigned char c, unsigned char *checksum_a, unsigned char *checksum_b){
+  *checksum_a = *checksum_a + c;
+  *checksum_b = *checksum_b + *checksum_a;
+}
+
+void getCompleteChecksum(ubxmsg *ptr_ubx){
   // probleme dans cette fonction: les checksum sont variables
   // Algorithme de Fletcher: voir page 86 de u-blox6 receiver description protocol
   unsigned short int length = (ptr_ubx->length[1]<<8)|ptr_ubx->length[0];
   ptr_ubx->checksum_a = 0x00;
   ptr_ubx->checksum_b = 0x00;
   ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->id[0];
-  ptr_ubx->checksum_b = ptr_ubx->checksum_a + ptr_ubx->checksum_b;
+  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
   ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->id[1];
-  ptr_ubx->checksum_b = ptr_ubx->checksum_a + ptr_ubx->checksum_b;
-  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->length[1];
-  ptr_ubx->checksum_b = ptr_ubx->checksum_a + ptr_ubx->checksum_b;
+  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
   ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->length[0];
-  ptr_ubx->checksum_b = ptr_ubx->checksum_a + ptr_ubx->checksum_b;
-  for(int i; i<(length+4); i++){
+  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
+  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->length[1];
+  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
+  for(int i=0; i<length; i++){
     ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->payload[i];
-    ptr_ubx->checksum_b = ptr_ubx->checksum_a + ptr_ubx->checksum_b;
+    ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
   }
-
+  //checksum(ptr_ubx.id[0], ptr_ubx->checksum_a, ptr_ubx->checksum_b);
 }
 
 void getUTCUBX(ubxmsg *utc_msg, int leap_seconds, int year, int month, int day, int hour, int minute, int sec){
@@ -127,7 +132,7 @@ void getUTCUBX(ubxmsg *utc_msg, int leap_seconds, int year, int month, int day, 
   utc_msg->payload[19] = 0x07;
 
   // Compute checksums
-  getChecksum(utc_msg);
+  getCompleteChecksum(utc_msg);
 }
 
 int main(){
