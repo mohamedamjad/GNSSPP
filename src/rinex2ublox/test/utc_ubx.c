@@ -54,21 +54,23 @@ void getGPStime(t_gps *gps_time, int leap_seconds, int year, int mon, int day, i
   gps_time->sec = seconds % SECONDS_IN_WEEK;
 }
 
-void getChecksum(ubxmsg *ptr_ubx, unsigned char *checksum_a, unsigned char *checksum_b){
+void getChecksum(ubxmsg *ptr_ubx){
   // probleme dans cette fonction: les checksum sont variables
   // Algorithme de Fletcher: voir page 86 de u-blox6 receiver description protocol
   unsigned short int length = (ptr_ubx->length[1]<<8)|ptr_ubx->length[0];
-  *checksum_a = *checksum_a + ptr_ubx->id[0];
-  *checksum_b = *checksum_a + *checksum_b;
-  *checksum_a = *checksum_a + ptr_ubx->id[1];
-  *checksum_b = *checksum_a + *checksum_b;
-  *checksum_a = *checksum_a + ptr_ubx->length[1];
-  *checksum_b = *checksum_a + *checksum_b;
-  *checksum_a = *checksum_a + ptr_ubx->length[0];
-  *checksum_b = *checksum_a + *checksum_b;
-  for(int i; i<length; i++){
-    *checksum_a = *checksum_a + ptr_ubx->payload[i];
-    *checksum_b = *checksum_a + *checksum_b;
+  ptr_ubx->checksum_a = 0x00;
+  ptr_ubx->checksum_b = 0x00;
+  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->id[0];
+  ptr_ubx->checksum_b = ptr_ubx->checksum_a + ptr_ubx->checksum_b;
+  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->id[1];
+  ptr_ubx->checksum_b = ptr_ubx->checksum_a + ptr_ubx->checksum_b;
+  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->length[1];
+  ptr_ubx->checksum_b = ptr_ubx->checksum_a + ptr_ubx->checksum_b;
+  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->length[0];
+  ptr_ubx->checksum_b = ptr_ubx->checksum_a + ptr_ubx->checksum_b;
+  for(int i; i<(length+4); i++){
+    ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->payload[i];
+    ptr_ubx->checksum_b = ptr_ubx->checksum_a + ptr_ubx->checksum_b;
   }
 
 }
@@ -125,7 +127,7 @@ void getUTCUBX(ubxmsg *utc_msg, int leap_seconds, int year, int month, int day, 
   utc_msg->payload[19] = 0x07;
 
   // Compute checksums
-  getChecksum(utc_msg, &utc_msg->checksum_a, &utc_msg->checksum_b);
+  getChecksum(utc_msg);
 }
 
 int main(){
