@@ -22,6 +22,53 @@ typedef struct t_gps{
     int sec;
 }t_gps;
 
+typedef struct raw_observation{
+  
+}raw_observation;
+
+//***************************************************************************//
+//            Fonction pour le calcul du checksum                            //
+//***************************************************************************//
+void getCompleteChecksum(ubxmsg *ptr_ubx){
+  // probleme dans cette fonction: les checksum sont variables
+  // Algorithme de Fletcher: voir page 86 de u-blox6 receiver description protocol
+  unsigned short int length = (ptr_ubx->length[1]<<8)|ptr_ubx->length[0];
+  ptr_ubx->checksum_a = 0x00;
+  ptr_ubx->checksum_b = 0x00;
+  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->id[0];
+  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
+  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->id[1];
+  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
+  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->length[0];
+  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
+  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->length[1];
+  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
+  for(int i=0; i<length; i++){
+    ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->payload[i];
+    ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
+  }
+  //checksum(ptr_ubx.id[0], ptr_ubx->checksum_a, ptr_ubx->checksum_b);
+}
+
+//***************************************************************************//
+//            Fonction pour parser les messages RXM-RAW                      //
+//***************************************************************************//
+void getRawData(ubxmsg *raw_msg, short int number_of_sats){
+  int length = 8 + 24 * number_of_sats;
+
+  raw_msg->id[0] = 0x02;
+  raw_msg->id[1] = 0x10;
+
+  memcpy(&raw_msg->length, &length, 2*sizeof(unsigned char));
+  
+  // Compute checksums
+  getCompleteChecksum(raw_msg);
+
+}
+
+//***************************************************************************//
+//            Fonction pour parser les messages TIMENAV-UTC                  //
+//***************************************************************************//
 void getGPStime(t_gps *gps_time, int leap_seconds, int year, int mon, int day, int hour, int min, int sec){
   int seconds; // secondes entre l'origine et la date en paramètres
   // origine du temps GPS
@@ -57,27 +104,6 @@ void getGPStime(t_gps *gps_time, int leap_seconds, int year, int mon, int day, i
 void checksum(unsigned char c, unsigned char *checksum_a, unsigned char *checksum_b){
   *checksum_a = *checksum_a + c;
   *checksum_b = *checksum_b + *checksum_a;
-}
-
-void getCompleteChecksum(ubxmsg *ptr_ubx){
-  // probleme dans cette fonction: les checksum sont variables
-  // Algorithme de Fletcher: voir page 86 de u-blox6 receiver description protocol
-  unsigned short int length = (ptr_ubx->length[1]<<8)|ptr_ubx->length[0];
-  ptr_ubx->checksum_a = 0x00;
-  ptr_ubx->checksum_b = 0x00;
-  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->id[0];
-  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
-  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->id[1];
-  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
-  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->length[0];
-  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
-  ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->length[1];
-  ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
-  for(int i=0; i<length; i++){
-    ptr_ubx->checksum_a = ptr_ubx->checksum_a + ptr_ubx->payload[i];
-    ptr_ubx->checksum_b = ptr_ubx->checksum_b + ptr_ubx->checksum_a;
-  }
-  //checksum(ptr_ubx.id[0], ptr_ubx->checksum_a, ptr_ubx->checksum_b);
 }
 
 void getUTCUBX(ubxmsg *utc_msg, int leap_seconds, int year, int month, int day, int hour, int minute, int sec){
